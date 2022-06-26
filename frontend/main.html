@@ -1,0 +1,14 @@
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+<h1>WebSocket Test</h1>
+<script type="text/javascript">
+    const socket = new WebSocket("ws://localhost:9999/wikidata/1m");
+    socket.addEventListener('message', function (event) {
+        console.log('Message from server ', event.data);
+    });
+</script>
+</body>
+</html>
