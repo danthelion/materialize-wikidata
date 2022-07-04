@@ -1,8 +1,16 @@
-FROM python:3.10.2
+FROM python:3.10-slim
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONDONTWRITEBYTECODE=TRUE
+ENV PIP_NO_CACHE_DIR=TRUE
+ENV PIP_DISABLE_PIP_VERSION_CHECK=TRUE
 
-COPY app /app
+RUN mkdir -p /opt/program
+WORKDIR /opt/program
+
+COPY requirements.txt /opt/program/
+RUN python3 -m pip install -r /opt/program/requirements.txt
+
+COPY app /opt/program/app
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "9999"]

@@ -1,10 +1,14 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
-COPY requirements.txt .
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONDONTWRITEBYTECODE=TRUE
+ENV PIP_NO_CACHE_DIR=TRUE
+ENV PIP_DISABLE_PIP_VERSION_CHECK=TRUE
 
-RUN set -ex; \
-  	pip install --no-cache-dir -r requirements.txt
+RUN mkdir -p /opt/program
+WORKDIR /opt/program
 
-ADD wikidata_events.py .
+COPY requirements.txt /opt/program/
+RUN python3 -m pip install -r /opt/program/requirements.txt
 
-CMD ["python", "-u", "./wikidata_events.py"]
+COPY wikidata_events.py /opt/program/

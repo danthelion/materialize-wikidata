@@ -1,0 +1,12 @@
+wikidata_analysis:
+  target: dev
+  outputs:
+    dev:
+      type: materialize
+      threads: 1
+      host: localhost
+      port: 6875
+      user: materialize
+      pass: password
+      dbname: materialize
+      schema: public
