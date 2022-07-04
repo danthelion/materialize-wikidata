@@ -1,3 +1,4 @@
 .idea
 venv
 mzdata
+/wikidata_analysis/.user.yml

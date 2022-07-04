@@ -9,11 +9,14 @@ from fastapi import FastAPI
 from fastapi import WebSocket, WebSocketDisconnect
 from sqlalchemy import create_engine
 
+MATER = os.getenv("MATER", "localhost:6875")
+
+
 MESSAGE_STREAM_DELAY = 2  # seconds
 MESSAGE_STREAM_RETRY_TIMEOUT = 15000  # miliseconds
 # Materialize connection
 DB_URL = os.getenv(
-    "DATABASE_URL", "postgresql://materialize:materialize@localhost:6875/materialize"
+    "DATABASE_URL", f"postgresql://materialize:materialize@{MATER}/materialize"
 )
 
 database = databases.Database(DB_URL)

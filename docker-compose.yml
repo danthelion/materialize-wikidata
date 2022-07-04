@@ -1,33 +1,74 @@
 services:
   redpanda:
-    image: docker.vectorized.io/vectorized/redpanda:v21.11.3
-    container_name: redpanda
+    image: docker.vectorized.io/vectorized/redpanda:v22.1.4
     command:
-        - redpanda start
-        - --overprovisioned
-        - --smp 1
-        - --memory 1G
-        - --reserve-memory 0M
-        - --node-id 0
-        - --check=false
-        - --kafka-addr 0.0.0.0:9092
-        - --advertise-kafka-addr redpanda:9092
-        - --pandaproxy-addr 0.0.0.0:8082
-        - --advertise-pandaproxy-addr redpanda:8082
-        - --set redpanda.enable_transactions=true
-        - --set redpanda.enable_idempotence=true
-        - --set redpanda.auto_create_topics_enabled=true
+      - redpanda
+      - start
+      - --smp
+      - '1'
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - '0'
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - --set
+      - redpanda.cluster_id=redpanda
     ports:
       - "9092:9092"
-      - "8081:8081"
-      - "8082:8082"
-    healthcheck: { test: curl -f localhost:9644/v1/status/ready, interval: 1s, start_period: 30s }
+      - "9081:8081"
+      - "9082:8082"
+    expose:
+      - 29092 # redpanda
+      - 8081 # schema-registry
+      - 8082 # restproxy
+
   materialized:
-    image: materialize/materialized:v0.26.3
+    image: materialize/materialized:v0.26.4
     container_name: materialized
     command: -w1
     ports:
       - "6875:6875"
-  mzcli:
-    image: materialize/cli
-    container_name: mzcli
+
+  python_producer:
+    image: kafkapythonwiki:latest
+    build:
+      context: ./data-generator/
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      BROKER: "redpanda:29092"
+    volumes:
+      # Source code
+      - ./data-generator/wikidata_events.py:/wikidata_events.py
+    command: [ "python3", "wikidata_events.py" ]
+
+  create_topic:
+    image: docker.vectorized.io/vectorized/redpanda:v22.1.4
+    command:
+      - topic create recentchange --brokers redpanda:29092
+
+  provectus-ui-local:
+    image: provectuslabs/kafka-ui:46bcbb3436caf7357ff11eebbd1b49fe4f2cd167
+    ports:
+      - "9029:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "redpanda:29092"
+
+  backend:
+    image: backendpython:latest
+    build:
+      context: ./api/
+      dockerfile: Dockerfile
+    init: true
+    environment:
+      MATER: "materialized:6875"
+    ports:
+      - "9999:9999"
+    volumes:
+      # Source code
+      - ./api/app/:/opt/program/app/

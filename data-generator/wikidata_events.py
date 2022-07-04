@@ -1,7 +1,10 @@
 import json
+import os
 
 from kafka import KafkaProducer
 from sseclient import SSEClient as EventSource
+
+kafka_broker = os.getenv("BROKER", "localhost:9092")
 
 
 def produce_events_from_url(url: str, topic: str) -> None:
@@ -13,13 +16,13 @@ def produce_events_from_url(url: str, topic: str) -> None:
                 pass
             else:
                 key = parsed_event["server_name"]
-                # Partiton by server_name
+                # Partition by server_name
                 producer.send(topic, value=json.dumps(parsed_event).encode("utf-8"), key=key.encode("utf-8"))
 
 
 if __name__ == "__main__":
     producer = KafkaProducer(
-        bootstrap_servers="localhost:63248", client_id="wikidata-producer"
+        bootstrap_servers=kafka_broker, client_id="wikidata-producer"
     )
     produce_events_from_url(
         url="https://stream.wikimedia.org/v2/stream/recentchange", topic="recentchange"

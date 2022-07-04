@@ -3,7 +3,7 @@
 {% endset %}
 
 CREATE SOURCE {{ source_name }}
-  FROM KAFKA BROKER 'localhost:63248' TOPIC 'recentchange'
+  FROM KAFKA BROKER 'redpanda:29092' TOPIC 'recentchange'
   KEY FORMAT BYTES
   VALUE FORMAT BYTES
 ENVELOPE NONE
